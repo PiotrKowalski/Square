@@ -1,0 +1,50 @@
+syntax="proto3";
+
+package Service;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// Defines the import path that should be used to import the generated package,
+// and the package name.
+option go_package = "github.com/PiotrKowalski/square/proto;service";
+
+// These annotations are used when generating the OpenAPI file.
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    version: "1.0";
+  };
+  external_docs: {
+    url: "https://github.com/PiotrKowalski/square";
+    description: "gRPC-gateway boilerplate repository";
+  }
+  schemes: HTTPS;
+};
+
+service Service {
+
+  rpc Ping(PingRequest) returns (PingResponse) {
+    option (google.api.http) = {
+      get: "/ping/{message}";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Ping service";
+    };
+  }
+}
+
+message PingRequest {
+ string message = 1;
+}
+
+message PingResponse {
+
+
+  oneof ReturnMessage {
+    string echo = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    string env_row = 3;
+    string version = 4;
+  }
+}
