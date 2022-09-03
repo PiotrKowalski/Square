@@ -3,20 +3,21 @@ package gateway
 import (
 	"context"
 	"fmt"
-	pb "github.com/PiotrKowalski/square/proto"
+	"github.com/PiotrKowalski/square/config"
+	service "github.com/PiotrKowalski/square/proto"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"mime"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/53jk1/todo-task/third_party"
+	"github.com/PiotrKowalski/square/third_party"
 )
 
 // getOpenAPIHandler serves an OpenAPI UI.
@@ -34,7 +35,7 @@ func getOpenAPIHandler() http.Handler {
 // Run runs the gRPC-Gateway, dialling the provided address.
 func Run(dialAddr string) error {
 	// Adds gRPC internal logs. This is quite verbose, so adjust as desired!
-	log := grpclog.NewLoggerV2(os.Stdout, ioutil.Discard, ioutil.Discard)
+	log := grpclog.NewLoggerV2(os.Stdout, io.Discard, io.Discard)
 	grpclog.SetLoggerV2(log)
 
 	// Create a client connection to the gRPC Server we just started.
@@ -50,18 +51,23 @@ func Run(dialAddr string) error {
 	}
 
 	gwmux := runtime.NewServeMux()
-	err = pb.RegisterServiceServer(context.Background(), gwmux, conn)
+	err = service.RegisterServiceHandler(context.Background(), gwmux, conn)
 	if err != nil {
 		return fmt.Errorf("failed to register gateway: %w", err)
 	}
 
 	oa := getOpenAPIHandler()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "11000"
+	conf, err := config.GetConfig()
+	if err != nil {
+		return err
 	}
-	gatewayAddr := "0.0.0.0:" + port
+
+	port := conf.RestPort
+	if port == "" {
+		port = "40000"
+	}
+	gatewayAddr := "localhost:" + port
 	gwServer := &http.Server{
 		Addr: gatewayAddr,
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -72,8 +78,9 @@ func Run(dialAddr string) error {
 			oa.ServeHTTP(w, r)
 		}),
 	}
+
 	// Empty parameters mean use the TLS Config specified with the server.
-	if strings.ToLower(os.Getenv("SERVE_HTTP")) == "true" {
+	if conf.ServeHTTP {
 		log.Info("Serving gRPC-Gateway and OpenAPI Documentation on http://", gatewayAddr)
 		return fmt.Errorf("serving gRPC-Gateway server: %w", gwServer.ListenAndServe())
 	}

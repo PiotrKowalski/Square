@@ -2,18 +2,21 @@ package handler
 
 import (
 	"context"
-	"errors"
+	"github.com/PiotrKowalski/square/config"
 	pb "github.com/PiotrKowalski/square/proto"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Service struct {
 	*pb.UnimplementedServiceServer
+	conf config.Config
 }
 
-func New() *Service {
+func NewService(config config.Config) *Service {
 	return &Service{
 		UnimplementedServiceServer: &pb.UnimplementedServiceServer{},
+		conf:                       config,
 	}
 }
 
@@ -21,18 +24,18 @@ func (s *Service) Ping(ctx context.Context, req *pb.PingRequest) (*pb.PingRespon
 
 	switch msg := req.GetMessage(); msg {
 	case "echo":
+		return s.getEcho()
 
 	case "timestamp":
-		now := timestamppb.Now()
-		return &pb.PingResponse{ReturnMessage: &pb.PingResponse_Timestamp{Timestamp: now}}, nil
+		return s.getTimestamp(), nil
 
 	case "env":
+		return s.getEnvs()
 
 	case "version":
+		return s.getVersion()
 
 	default:
-		return nil, errors.New("")
+		return nil, status.Error(codes.InvalidArgument, "Use one of echo|timestamp|env|version as message")
 	}
-
-	return nil, errors.New("")
 }

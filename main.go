@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"github.com/PiotrKowalski/square/config"
+	"github.com/PiotrKowalski/square/gateway"
 	"github.com/PiotrKowalski/square/handler"
 	pb "github.com/PiotrKowalski/square/proto"
 	"google.golang.org/grpc"
@@ -11,30 +14,31 @@ import (
 )
 
 func main() {
-
 	// Adds gRPC internal logs. This is quite verbose, so adjust as desired!
 	log := grpclog.NewLoggerV2(os.Stdout, io.Discard, io.Discard)
 	grpclog.SetLoggerV2(log)
 
-	addr := "0.0.0.0:10000"
-	lis, err := net.Listen("tcp", addr)
+	conf, err := config.GetConfig()
 	if err != nil {
-		log.Fatalln("Failed to listen:", err)
+		grpclog.Fatal(err)
 	}
 
-	handler := handler.New()
+	addr := fmt.Sprintf("localhost:%s", conf.GrpcPort)
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		grpclog.Fatalf("Failed to listen: %w", err)
+	}
 
 	s := grpc.NewServer()
 
-	pb.RegisterServiceServer(s, handler)
+	pb.RegisterServiceServer(s, handler.NewService(conf))
 
 	// Serve gRPC Server
-	log.Info("Serving gRPC on https://", addr)
+	grpclog.Info("Serving gRPC on https://", addr)
 	go func() {
-		log.Fatal(s.Serve(lis))
+		grpclog.Fatal(s.Serve(lis))
 	}()
 
-	//err = gateway.Run("dns:///" + addr)
-	log.Fatalln(err)
-
+	err = gateway.Run("dns:///" + addr)
+	grpclog.Fatalln(err)
 }

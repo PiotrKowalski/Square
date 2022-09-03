@@ -24,4 +24,4 @@ tasks:
   openapi:
     desc: "Generate documentation for API."
     cmds:
-      - protoc -I $GOPATH/src -I $GOPATH/src/github.com/googleapis/googleapis -I $GOPATH/src/github.com/grpc-ecosystem/grpc-gateway --proto_path=$GOPATH/src/github.com/PiotrKowalski/square/proto/ --swagger_out=third_party/OpenAPI/ example.proto
+      - protoc -I $GOPATH/src -I $GOPATH/src/github.com/googleapis/googleapis -I $GOPATH/src/github.com/grpc-ecosystem/grpc-gateway --proto_path=$GOPATH/src/github.com/PiotrKowalski/square/proto/ --openapiv2_out=use_go_templates=true:./third_party/OpenApi  service.proto

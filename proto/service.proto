@@ -13,38 +13,63 @@ option go_package = "github.com/PiotrKowalski/square/proto;service";
 // These annotations are used when generating the OpenAPI file.
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
-    version: "1.0";
-  };
-  external_docs: {
-    url: "https://github.com/PiotrKowalski/square";
-    description: "gRPC-gateway boilerplate repository";
+    version: "1.0"
   }
-  schemes: HTTPS;
+  external_docs: {
+    url: "https://github.com/PiotrKowalski/square"
+    description: "gRPC-gateway boilerplate repository"
+  }
+  schemes: HTTPS
 };
 
 service Service {
 
   rpc Ping(PingRequest) returns (PingResponse) {
     option (google.api.http) = {
-      get: "/ping/{message}";
+      post: "/ping"
+      body: "message"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Ping service";
+      summary: "Ping service"
+      responses: {
+        key: "200"
+        value: {
+          examples: {
+            key: "application/json"
+            value: '{\n  \"env\": \"{\\\"GRPC_PORT\\\":\\\"30000\\\",\\\"REST_PORT\\\":\\\"40000\\\",\\\"ECHO_URL\\\":\\\"https://postman-echo.com/get\\\"}\",\n  \"ReturnMessage\": \"env\"\n}'
+          }
+        }
+      }
     };
   }
 }
 
 message PingRequest {
- string message = 1;
+ string message = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+   description: "Switch for choosing behaviour of Ping endpoint. Choose between echo | timestamp | env | version",
+   format: "string",
+   example: "\"timestamp\""
+ }];
 }
 
 message PingResponse {
-
-
   oneof ReturnMessage {
-    string echo = 1;
-    google.protobuf.Timestamp timestamp = 2;
-    string env_row = 3;
-    string version = 4;
+    string echo = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Response from postman echo service (as a string)",
+      format: "string"
+    }];
+    google.protobuf.Timestamp timestamp = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Timestamp of current time",
+      format: "timestamp"
+    }];
+    string env = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "String format of environment variables available in the system",
+      format: "json"
+    }];
+    string version = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Version of API",
+      format: "string",
+      example: "\"1.0\""
+    }];
   }
 }

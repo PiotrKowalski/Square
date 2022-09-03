@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/53jk1/todo-task v0.0.0-20220609224221-30683a7a3ecb
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
+	github.com/kelseyhightower/envconfig v1.4.0
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
