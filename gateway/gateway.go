@@ -5,19 +5,16 @@ import (
 	"fmt"
 	"github.com/PiotrKowalski/square/config"
 	service "github.com/PiotrKowalski/square/proto"
-	"io"
+	"google.golang.org/grpc/grpclog"
 	"io/fs"
 	"mime"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/PiotrKowalski/square/third_party"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/grpclog"
-
-	"github.com/PiotrKowalski/square/third_party"
 )
 
 // getOpenAPIHandler serves an OpenAPI UI.
@@ -34,9 +31,6 @@ func getOpenAPIHandler() http.Handler {
 
 // Run runs the gRPC-Gateway, dialling the provided address.
 func Run(dialAddr string) error {
-	// Adds gRPC internal logs. This is quite verbose, so adjust as desired!
-	log := grpclog.NewLoggerV2(os.Stdout, io.Discard, io.Discard)
-	grpclog.SetLoggerV2(log)
 
 	// Create a client connection to the gRPC Server we just started.
 	// This is where the gRPC-Gateway proxies the requests.
@@ -64,9 +58,6 @@ func Run(dialAddr string) error {
 	}
 
 	port := conf.RestPort
-	if port == "" {
-		port = "40000"
-	}
 	gatewayAddr := "localhost:" + port
 	gwServer := &http.Server{
 		Addr: gatewayAddr,
@@ -81,13 +72,13 @@ func Run(dialAddr string) error {
 
 	// Empty parameters mean use the TLS Config specified with the server.
 	if conf.ServeHTTP {
-		log.Info("Serving gRPC-Gateway and OpenAPI Documentation on http://", gatewayAddr)
+		grpclog.Info("Serving gRPC-Gateway and OpenAPI Documentation on http://", gatewayAddr)
 		return fmt.Errorf("serving gRPC-Gateway server: %w", gwServer.ListenAndServe())
 	}
 
 	// gwServer.TLSConfig = &tls.Config{
 	// 	Certificates: []tls.Certificate{*third_party.TLSCert},
 	// }
-	log.Info("Serving gRPC-Gateway and OpenAPI Documentation on https://", gatewayAddr)
+	grpclog.Info("Serving gRPC-Gateway and OpenAPI Documentation on https://", gatewayAddr)
 	return fmt.Errorf("serving gRPC-Gateway server: %w", gwServer.ListenAndServeTLS("", ""))
 }
