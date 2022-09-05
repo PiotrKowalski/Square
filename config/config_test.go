@@ -61,6 +61,7 @@ func TestGetConfig(t *testing.T) {
 			want: Config{
 				GrpcPort:  "30000",
 				RestPort:  "40000",
+				EchoUrl:   "https://postman-echo.com/get",
 				ServeHTTP: true,
 			},
 			envs: map[string]string{
@@ -75,7 +76,7 @@ func TestGetConfig(t *testing.T) {
 				GrpcPort:  "30000",
 				RestPort:  "40000",
 				EchoUrl:   "https://postman-echo.com/get",
-				ServeHTTP: false,
+				ServeHTTP: true,
 			},
 			envs: map[string]string{
 				"GRPC_PORT": "30000",

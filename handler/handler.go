@@ -23,8 +23,6 @@ func NewService(config config.Config) *Service {
 func (s *Service) Ping(ctx context.Context, req *pb.PingRequest) (*pb.PingResponse, error) {
 
 	switch msg := req.GetMessage(); msg {
-	case "echo":
-		return s.getEcho()
 
 	case "timestamp":
 		return s.getTimestamp(), nil
@@ -34,6 +32,9 @@ func (s *Service) Ping(ctx context.Context, req *pb.PingRequest) (*pb.PingRespon
 
 	case "version":
 		return s.getVersion()
+
+	case "echo":
+		return s.getEcho()
 
 	default:
 		return nil, status.Error(codes.InvalidArgument, "Use one of echo|timestamp|env|version as message")
